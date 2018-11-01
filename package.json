@@ -1,0 +1,28 @@
+{
+  "name": "copy-cat",
+  "version": "1.0.0",
+  "description": "A simple Slack integration to tell people when they make a post that has already been made in a channel",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chieze-Franklin/copy-cat.git"
+  },
+  "author": "Chieze Franklin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Chieze-Franklin/copy-cat/issues"
+  },
+  "homepage": "https://github.com/Chieze-Franklin/copy-cat#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "crypto": "^1.0.1",
+    "dotenv": "^6.1.0",
+    "express": "^4.16.4",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5",
+    "slackbots": "^1.1.0"
+  }
+}
