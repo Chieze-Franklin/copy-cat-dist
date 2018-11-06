@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
 const request = require('request-promise-native');
@@ -158,7 +159,12 @@ const utils = {
     const linkToOriginalMsg = await utils.getMessagePermalink(originalMsg, channelId);
     const linkToCopyMsg = await utils.getMessagePermalink(copyMsg, channelId);
     try {
-      const threadedMsg = await utils.reportDuplicateInChannelAsThread(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg);
+      let threadedMsg = {};
+      try {
+        threadedMsg = await utils.reportDuplicateInChannelAsThread(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg);
+      } catch (error) {
+        threadedMsg = {};
+      }
       await utils.reportDuplicateInChannelAsEphemeral(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, threadedMsg);
     } catch (error) {
       await utils.reportDuplicateToUser(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg);
@@ -186,7 +192,10 @@ const utils = {
             text: 'Delete Copy',
             style: 'danger',
             type: 'button',
-            value: JSON.stringify({ message_ts: copyMsg.ts, threaded_message_ts: threadedMsg.ts })
+            value: JSON.stringify({
+              message_ts: copyMsg.ts,
+              threaded_message_ts: !(_.isEmpty(threadedMsg)) ? threadedMsg.ts : null
+            })
           }]
         }]
       }
