@@ -17,6 +17,8 @@ bot.on('start', function() {
 });
 
 bot.on('message', async function(data) {
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>');
+  console.log(data);
   try {
     if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
       const messages = await utils.fetchMessagesFromChannel(data.channel);
