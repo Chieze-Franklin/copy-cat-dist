@@ -1,8 +1,9 @@
-const _ = require('lodash');
-const crypto = require('crypto');
-const dotenv = require('dotenv');
-const request = require('request-promise-native');
-const SlackBot = require('slackbots');
+import 'babel-polyfill' // eslint-disable-line
+import _ from 'lodash';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+import request from 'request-promise-native';
+import SlackBot from 'slackbots';
 
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();

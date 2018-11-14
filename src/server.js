@@ -1,7 +1,9 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const request = require('request-promise-native');
-const utils = require('./utils');
+import 'babel-polyfill' // eslint-disable-line
+import express from 'express';
+import bodyParser from 'body-parser';
+import request from 'request-promise-native';
+
+import utils from './utils';
 
 const app = new express();
 
