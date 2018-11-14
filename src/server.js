@@ -23,8 +23,6 @@ app.engine('html', exphbs.create({
 app.set('view engine', 'html');
 
 app.get('/', async (req, res) => {
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-  console.log(__dirname)
   const result = await models.TeamCred.findAndCountAll({ limit: 10 });
   res.render('index.html', {
     slack_button_href: 'https://slack.com/oauth/authorize?scope=channels:history,channels:read,channels:write,chat:write:bot,groups:history,groups:read,groups:write,incoming-webhook,mpim:history,mpim:read,mpim:write,files:read,bot,users:read&client_id=258316641222.456711531815',
