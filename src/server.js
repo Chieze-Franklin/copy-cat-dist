@@ -74,7 +74,11 @@ app.post('/delete', async (req, res) => {
     if (ok) {
       return res.status(200).send('Duplicate message deleted!');
     }
-    return res.status(200).send('Could not delete duplicate message!');
+    return res.status(200).send(
+      'Could not delete duplicate message!\n' +
+      'This may happen if CopyCat was installed\n' +
+      'by a user who is not an Admin of this workspace.'
+    );
   } catch (error) {
     return res.status(500).json(error);
   }
