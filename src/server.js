@@ -46,8 +46,6 @@ app.get('/auth', async (req, res) => {
           userId,
           userToken
         });
-        console.log('teamCred>>>>>>>>>>>>>>>>>>>>>');
-        console.log(teamCred);
         // OAuth done- redirect the user to wherever
         res.redirect('/files/success.html');
       }
@@ -60,8 +58,6 @@ app.get('/auth', async (req, res) => {
 app.post('/delete', async (req, res) => {
   try {
     const payload = JSON.parse(req.body.payload);
-    console.log('payload>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    console.log(payload);
     const value = JSON.parse(payload.actions[0].value);
     let channel = value.channel || payload.channel.id;
     const existingTeamCred = await models.TeamCred.findOne({
@@ -94,15 +90,9 @@ app.post('/message', async (req, res) => {
       const data = req.body.event;
       if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
         const allTeamCred = await models.TeamCred.findAll({});
-        console.log('allTeamCred>>>>>>>>>>>>>>>>>>>>>');
-        console.log(allTeamCred);
-        console.log('data.team>>>>>>>>>>>>>>>>>>>>>');
-        console.log(req.body.team_id);
         const existingTeamCred = await models.TeamCred.findOne({
           where: { teamId: req.body.team_id }
         });
-        console.log('existingTeamCred>>>>>>>>>>>>>>>>>>>>>');
-        console.log(existingTeamCred);
         const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
         const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
         if (matches.length > 0) {
@@ -111,7 +101,6 @@ app.post('/message', async (req, res) => {
         return res.status(200).json({});
       }
     } catch (error) {
-      console.log('error>>>>>>>>>>>>>>>>>>>>>>');
       console.log(error);
     }
   }
