@@ -46,6 +46,8 @@ app.get('/auth', async (req, res) => {
           userId,
           userToken
         });
+        console.log('teamCred>>>>>>>>>>>>>>>>>>>>>');
+        console.log(teamCred);
         // OAuth done- redirect the user to wherever
         res.redirect('/files/success.html');
       }
