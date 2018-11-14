@@ -82,10 +82,32 @@ app.post('/message', async (req, res) => {
   // if Slack is "challenging" our URL in order to verify it
   if (req.body.challenge) {
     return res.status(200).json({ challenge: req.body.challenge });
+  } else {
+    try {
+      const data = req.body.event;
+      if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
+        const allTeamCred = await models.TeamCred.findAll({});
+        console.log('allTeamCred>>>>>>>>>>>>>>>>>>>>>');
+        console.log(allTeamCred);
+        console.log('data.team>>>>>>>>>>>>>>>>>>>>>');
+        console.log(req.body.team_id);
+        const existingTeamCred = await models.TeamCred.findOne({
+          where: { teamId: req.body.team_id }
+        });
+        console.log('existingTeamCred>>>>>>>>>>>>>>>>>>>>>');
+        console.log(existingTeamCred);
+        const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
+        const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
+        if (matches.length > 0) {
+          await utils.reportDuplicate(data.channel, matches[0], data, data.user, existingTeamCred);
+        }
+        return res.status(200).json({});
+      }
+    } catch (error) {
+      console.log('error>>>>>>>>>>>>>>>>>>>>>>');
+      console.log(error);
+    }
   }
-  console.log('req.body>>>>>>>>>>>>>>>>>>>>>');
-  console.log(req.body);
-  return res.status(200).json({});
 })
 
 let server = app.listen(process.env.PORT || 5000, () => {
