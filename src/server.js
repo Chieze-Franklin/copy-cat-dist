@@ -1,6 +1,7 @@
 import 'babel-polyfill' // eslint-disable-line
 import express from 'express';
 import bodyParser from 'body-parser';
+import models from './models';
 import request from 'request-promise-native';
 
 import utils from './utils';
@@ -28,11 +29,23 @@ app.get('/auth', (req, res) => {
   request.post('https://slack.com/api/oauth.access', data, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       const jsonResponse = JSON.parse(body);
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>');
-      console.log(jsonResponse);
       if (jsonResponse.ok) {
         // get tokens
+        const botId = jsonResponse.bot.bot_user_id;
+        const botToken = jsonResponse.bot.bot_access_token;
+        const teamId = jsonResponse.team_id;
+        const teamName = jsonResponse.team_name;
+        const userId = jsonResponse.user_id;
+        const userToken = jsonResponse.access_token;
         // create and save team creds
+        const teamCred = await models.TeamCred.upsert({
+          botId,
+          botToken,
+          teamId,
+          teamName,
+          userId,
+          userToken
+        });
         // OAuth done- redirect the user to wherever
         res.redirect('/files/success.html');
       }
@@ -45,6 +58,8 @@ app.get('/auth', (req, res) => {
 app.post('/delete', async (req, res) => {
   try {
     const payload = JSON.parse(req.body.payload);
+    console.log('payload>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    console.log(payload);
     const value = JSON.parse(payload.actions[0].value);
     let channel = value.channel || payload.channel.id;
     if (value.threaded_message_ts) {
