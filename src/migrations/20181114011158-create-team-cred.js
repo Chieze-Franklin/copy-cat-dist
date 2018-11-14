@@ -23,6 +23,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
+      teamUrl: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
       userId: {
         allowNull: false,
         type: Sequelize.STRING

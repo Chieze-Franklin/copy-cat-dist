@@ -4,6 +4,7 @@ import exphbs from 'express-handlebars';
 import bodyParser from 'body-parser';
 import path from 'path';
 import request from 'request-promise-native';
+import url from 'url';
 
 import models from './models';
 import utils from './utils';
@@ -52,19 +53,25 @@ app.get('/auth', async (req, res) => {
     });
     const jsonResponse = JSON.parse(response.body);
     if (jsonResponse.ok) {
-      // get tokens
+      // get tokens and other data
       const botId = jsonResponse.bot.bot_user_id;
       const botToken = jsonResponse.bot.bot_access_token;
       const teamId = jsonResponse.team_id;
       const teamName = jsonResponse.team_name;
       const userId = jsonResponse.user_id;
       const userToken = jsonResponse.access_token;
+      const rawUrl = jsonResponse.incoming_webhook.configuration_url;
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>')
+      console.log(rawUrl);
+      const urlObject = url.parse(rawUrl);
+      console.log(`https://${urlObject.host}`);
       // create and save team creds
       const teamCred = await models.TeamCred.upsert({
         botId,
         botToken,
         teamId,
         teamName,
+        teamUrl: `https://${urlObject.host}`,
         userId,
         userToken
       });

@@ -23,6 +23,10 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.STRING
     },
+    teamUrl: {
+      allowNull: false,
+      type: DataTypes.STRING
+    },
     userId: {
       allowNull: false,
       type: DataTypes.STRING
