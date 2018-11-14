@@ -13,11 +13,13 @@ const app = new express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-if (process.env.NODE_ENV === 'production') {
-  app.use('**/assets', express.static(path.join(__dirname, '../build/assets')));
-} else {
-  app.use('**/assets', express.static(__dirname + '/assets'));
-}
+app.use('**/assets', express.static(__dirname + '/assets'));
+app.use('**/assets', (req, res, next) => {
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+  console.log(__dirname);
+  console.log(req.originalUrl)
+  next();
+});
 
 app.set('views', __dirname + '/views');
 app.engine('html', exphbs.create({
