@@ -2,9 +2,10 @@ import 'babel-polyfill' // eslint-disable-line
 import express from 'express';
 import exphbs from 'express-handlebars';
 import bodyParser from 'body-parser';
-import models from './models';
+import path from 'path';
 import request from 'request-promise-native';
 
+import models from './models';
 import utils from './utils';
 
 const app = new express();
@@ -12,7 +13,11 @@ const app = new express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-app.use('**/assets', express.static(__dirname + '/assets'));
+if (process.env.NODE_ENV === 'production') {
+  app.use('**/assets', express.static(path.join(__dirname, '../build/assets')));
+} else {
+  app.use('**/assets', express.static(__dirname + '/assets'));
+}
 
 app.set('views', __dirname + '/views');
 app.engine('html', exphbs.create({
