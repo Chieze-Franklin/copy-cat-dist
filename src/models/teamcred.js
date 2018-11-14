@@ -4,32 +4,32 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
-      type: Sequelize.INTEGER
+      type: DataTypes.INTEGER
     },
     botId: {
       allowNull: false,
-      type: Sequelize.STRING
+      type: DataTypes.STRING
     },
     botToken: {
       allowNull: false,
-      type: Sequelize.STRING
+      type: DataTypes.STRING
     },
     teamId: {
       allowNull: false,
-      type: Sequelize.STRING,
+      type: DataTypes.STRING,
       unique: true
     },
     teamName: {
       allowNull: false,
-      type: Sequelize.STRING
+      type: DataTypes.STRING
     },
     userId: {
       allowNull: false,
-      type: Sequelize.STRING
+      type: DataTypes.STRING
     },
     userToken: {
       allowNull: false,
-      type: Sequelize.STRING
+      type: DataTypes.STRING
     },
   });
 
