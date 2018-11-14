@@ -32,8 +32,6 @@ app.get('/', async (req, res) => {
       teamUrl: row.dataValues.teamUrl
     }
   });
-  console.log('>>>>>>>>>>>>>>>>>>>>>')
-  console.log(teams);
   res.render('index.html', {
     slack_button_href: 'https://slack.com/oauth/authorize?scope=channels:history,channels:read,channels:write,chat:write:bot,groups:history,groups:read,groups:write,incoming-webhook,mpim:history,mpim:read,mpim:write,files:read,bot,users:read&client_id=258316641222.456711531815',
     teams,
