@@ -26,9 +26,17 @@ app.set('view engine', 'html');
 
 app.get('/', async (req, res) => {
   const result = await models.TeamCred.findAndCountAll({ limit: 10 });
+  const teams = result.rows.map(row => {
+    return {
+      teamName: row.dataValues.teamName,
+      teamUrl: row.dataValues.teamUrl
+    }
+  });
+  console.log('>>>>>>>>>>>>>>>>>>>>>')
+  console.log(teams);
   res.render('index.html', {
     slack_button_href: 'https://slack.com/oauth/authorize?scope=channels:history,channels:read,channels:write,chat:write:bot,groups:history,groups:read,groups:write,incoming-webhook,mpim:history,mpim:read,mpim:write,files:read,bot,users:read&client_id=258316641222.456711531815',
-    teams: result.rows.map(row => row.dataValues.teamName),
+    teams,
     teamsCount: result.count
   });
 });
@@ -61,10 +69,7 @@ app.get('/auth', async (req, res) => {
       const userId = jsonResponse.user_id;
       const userToken = jsonResponse.access_token;
       const rawUrl = jsonResponse.incoming_webhook.configuration_url;
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>')
-      console.log(rawUrl);
       const urlObject = url.parse(rawUrl);
-      console.log(`https://${urlObject.host}`);
       // create and save team creds
       const teamCred = await models.TeamCred.upsert({
         botId,
