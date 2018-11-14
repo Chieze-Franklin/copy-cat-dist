@@ -5,9 +5,19 @@
   "main": "server.js",
   "scripts": {
     "babel-node": "babel-node ./src/server --presets=env",
+    "build": "npm run remove-build && npm run build:server && npm run db:migrate",
+    "build:server": "./node_modules/.bin/babel -d ./build ./src -s --copy-files",
+    "build-and-start": "npm run build && npm start",
+    "db:migrate": "./node_modules/.bin/sequelize db:migrate",
+    "db:migrate:test": "NODE_ENV=test ./node_modules/.bin/sequelize db:migrate",
+    "db:reset": "./node_modules/.bin/sequelize db:migrate:undo:all && ./node_modules/.bin/sequelize db:migrate",
+    "db:reset:test": "NODE_ENV=test ./node_modules/.bin/sequelize db:migrate:undo:all && NODE_ENV=test ./node_modules/.bin/sequelize db:migrate && npm run db:seed:test",
+    "db:seed:test": "NODE_ENV=test ./node_modules/.bin/sequelize db:seed:undo:all && NODE_ENV=test ./node_modules/.bin/sequelize db:seed:all",
+    "heroku-postbuild": "npm run build",
+    "remove-build": "./node_modules/.bin/rimraf ./build",
     "start": "NODE_ENV=production ./node_modules/.bin/forever -m 5 ./build/server.js",
     "start:dev": "NODE_ENV=development nodemon --exec npm run babel-node ./src/server",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 0"
   },
   "repository": {
     "type": "git",
@@ -32,8 +42,11 @@
     "express": "^4.16.4",
     "forever": "^0.15.3",
     "lodash": "^4.17.11",
+    "pg": "^7.6.1",
+    "pg-hstore": "^2.3.2",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
+    "rimraf": "^2.6.2",
     "sequelize": "^4.41.2",
     "sequelize-cli": "^5.3.0",
     "slackbots": "^1.1.0"
