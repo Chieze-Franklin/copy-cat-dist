@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 
 app.get('/auth', (req, res) => {
   if (!req.query.code) { // access denied
-    return;
+    return; // TODO: redirect somewhere
   }
   var data = {form: {
     client_id: process.env.SLACK_CLIENT_ID,
@@ -25,11 +25,17 @@ app.get('/auth', (req, res) => {
   }};
   request.post('https://slack.com/api/oauth.access', data, function (error, response, body) {
     if (!error && response.statusCode == 200) {
-      // Get an auth token
-      let oauthToken = JSON.parse(body).access_token;
-      // OAuth done- redirect the user to wherever
-      res.redirect('/files/success.html');
+      const jsonResponse = JSON.parse(body);
+      console.log(jsonResponse);
+      if (jsonResponse.ok) {
+        // get tokens
+        // create and save team creds
+        // OAuth done- redirect the user to wherever
+        res.redirect('/files/success.html');
+      }
     }
+
+    // TODO: something to return for failure
   })
 });
 
