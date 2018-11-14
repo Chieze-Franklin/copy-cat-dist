@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "A simple Slack integration to tell people when they make a post that has already been made in a channel",
   "main": "server.js",
+  "engines": {
+    "node": "9.7.1",
+    "npm": "5.6.0"
+  },
   "scripts": {
     "babel-node": "babel-node ./src/server --presets=env",
     "build": "npm run remove-build && npm run build:server && npm run db:reset",

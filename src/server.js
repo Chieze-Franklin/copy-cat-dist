@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
   res.redirect('/files/index.html')
 });
 
-app.get('/auth', (req, res) => {
+app.get('/auth', async (req, res) => {
   if (!req.query.code) { // access denied
     return; // TODO: redirect somewhere
   }
@@ -26,7 +26,7 @@ app.get('/auth', (req, res) => {
     client_secret: process.env.SLACK_CLIENT_SECRET,
     code: req.query.code
   }};
-  request.post('https://slack.com/api/oauth.access', data, function (error, response, body) {
+  request.post('https://slack.com/api/oauth.access', data, async function (error, response, body) {
     if (!error && response.statusCode == 200) {
       const jsonResponse = JSON.parse(body);
       if (jsonResponse.ok) {
