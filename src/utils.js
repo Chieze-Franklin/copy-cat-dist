@@ -22,6 +22,9 @@ bot.on('message', async function(data) {
   console.log('data>>>>>>>>>>>>>>>>>>>>>');
   console.log(data);
   try {
+    const allTeamCred = await models.TeamCred.findAll({});
+    console.log('allTeamCred>>>>>>>>>>>>>>>>>>>>>');
+    console.log(allTeamCred);
     const existingTeamCred = await models.TeamCred.findOne({
       where: { teamId: data.team }
     });
