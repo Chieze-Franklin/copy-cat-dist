@@ -2,7 +2,7 @@ import 'babel-polyfill' // eslint-disable-line
 import _ from 'lodash';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import models from './models';
+// import models from './models';
 import request from 'request-promise-native';
 import SlackBot from 'slackbots';
 
@@ -10,8 +10,9 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
+/*
 const bot = new SlackBot({
-  token: process.env.SLACK_BOT_TOKEN, 
+  token: // process.env.SLACK_BOT_TOKEN, 
   name: 'CopyCat'
 });
 bot.on('start', function() {
@@ -19,20 +20,12 @@ bot.on('start', function() {
 });
 
 bot.on('message', async function(data) {
-  console.log('data>>>>>>>>>>>>>>>>>>>>>');
-  console.log(data);
   try {
     if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
       const allTeamCred = await models.TeamCred.findAll({});
-      console.log('allTeamCred>>>>>>>>>>>>>>>>>>>>>');
-      console.log(allTeamCred);
-      console.log('data.team>>>>>>>>>>>>>>>>>>>>>');
-      console.log(data.team);
       const existingTeamCred = await models.TeamCred.findOne({
         where: { teamId: data.team }
       });
-      console.log('existingTeamCred>>>>>>>>>>>>>>>>>>>>>');
-      console.log(existingTeamCred);
       const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
       const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
       if (matches.length > 0) {
@@ -43,6 +36,7 @@ bot.on('message', async function(data) {
     console.log(error);
   }
 });
+*/
 
 const utils = {
   compareNewMessageToOldMessages: async function(messages, teamCred) {
@@ -95,7 +89,7 @@ const utils = {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       formData: {
-        token: teamCred.userToken, //process.env.SLACK_USER_TOKEN,
+        token: teamCred.userToken, // process.env.SLACK_USER_TOKEN,
         channel: channel,
         ts: message_ts
       },
@@ -108,7 +102,7 @@ const utils = {
     let messages = [];
     let url = 'https://slack.com/api/conversations.history';
     url += '?channel=' + channel;
-    url += '&token=' + teamCred.userToken;//process.env.SLACK_USER_TOKEN;
+    url += '&token=' + teamCred.userToken; // process.env.SLACK_USER_TOKEN;
     const response = await request({
       url: url,
       method: 'GET',
@@ -121,14 +115,12 @@ const utils = {
     if (data.ok && data.messages) {
       messages = data.messages;
     }
-    console.log('messages>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    console.log(messages)
     return messages;
   },
   findUserById: async function(id, teamCred) {
     let url = 'https://slack.com/api/users.info';
     url += '?user=' + id;
-    url += '&token=' + teamCred.userToken; //process.env.SLACK_USER_TOKEN;
+    url += '&token=' + teamCred.userToken; // process.env.SLACK_USER_TOKEN;
     const response = await request({
       url: url,
       method: 'GET',
@@ -143,7 +135,7 @@ const utils = {
   getMessagePermalink: async function(message, channel, teamCred) {
     let url = 'https://slack.com/api/chat.getPermalink';
     url += '?channel=' + channel;
-    url += '&token=' + teamCred.botToken;//process.env.SLACK_BOT_TOKEN;
+    url += '&token=' + teamCred.botToken; // process.env.SLACK_BOT_TOKEN;
     url += '&message_ts=' + message.ts;
     const response = await request({
       url: url,
@@ -154,8 +146,6 @@ const utils = {
       resolveWithFullResponse: true
     });
     const data = JSON.parse(response.body);
-    console.log('data.permalink>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    console.log(data.permalink)
     return data.permalink;
   },
   hashFile: async function(url, teamCred) {
