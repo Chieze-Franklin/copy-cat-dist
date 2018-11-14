@@ -2,6 +2,7 @@ import 'babel-polyfill' // eslint-disable-line
 import _ from 'lodash';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
+import models from './models';
 import request from 'request-promise-native';
 import SlackBot from 'slackbots';
 
@@ -18,12 +19,19 @@ bot.on('start', function() {
 });
 
 bot.on('message', async function(data) {
+  console.log('data>>>>>>>>>>>>>>>>>>>>>');
+  console.log(data);
   try {
-    if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
-      const messages = await utils.fetchMessagesFromChannel(data.channel);
-      const matches = await utils.compareNewMessageToOldMessages(messages);
+    const existingTeamCred = await models.TeamCred.findOne({
+      where: { teamId: data.team }
+    });
+    console.log('existingTeamCred>>>>>>>>>>>>>>>>>>>>>');
+    console.log(existingTeamCred);
+    if (existingTeamCred && data.type === 'message' && !data.thread_ts && !data.bot_id) {
+      const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
+      const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
       if (matches.length > 0) {
-        await utils.reportDuplicate(data.channel, matches[0], data, data.user);
+        await utils.reportDuplicate(data.channel, matches[0], data, data.user, existingTeamCred);
       }
     }
   } catch (error) {
@@ -32,7 +40,7 @@ bot.on('message', async function(data) {
 });
 
 const utils = {
-  compareNewMessageToOldMessages: async function(messages) {
+  compareNewMessageToOldMessages: async function(messages, teamCred) {
     let matches = [];
     if (messages.length < 2) {
       return matches;
@@ -61,8 +69,8 @@ const utils = {
       }
       if (newMessage.files && msg.files && match) { // no need entering this block if match is false
         // compare the hashes of the files
-        const hash1 = await utils.hashFile(newMessage.files[0].url_private);
-        const hash2 = await utils.hashFile(msg.files[0].url_private);
+        const hash1 = await utils.hashFile(newMessage.files[0].url_private, teamCred);
+        const hash2 = await utils.hashFile(msg.files[0].url_private, teamCred);
         match = hash1 === hash2;
       }
 
@@ -73,7 +81,7 @@ const utils = {
     }
     return matches;
   },
-  deleteMessage: async function(message_ts, channel) {
+  deleteMessage: async function(message_ts, channel, teamCred) {
     let url = 'https://slack.com/api/chat.delete';
     const response = await request({
       url: url,
@@ -82,7 +90,7 @@ const utils = {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       formData: {
-        token: process.env.SLACK_USER_TOKEN,
+        token: teamCred.userToken, //process.env.SLACK_USER_TOKEN,
         channel: channel,
         ts: message_ts
       },
@@ -91,11 +99,11 @@ const utils = {
     const data = JSON.parse(response.body);
     return data.ok;
   },
-  fetchMessagesFromChannel: async function(channel) {
+  fetchMessagesFromChannel: async function(channel, teamCred) {
     let messages = [];
     let url = 'https://slack.com/api/conversations.history';
     url += '?channel=' + channel;
-    url += '&token=' + process.env.SLACK_USER_TOKEN;
+    url += '&token=' + teamCred.userToken;//process.env.SLACK_USER_TOKEN;
     const response = await request({
       url: url,
       method: 'GET',
@@ -108,12 +116,14 @@ const utils = {
     if (data.ok && data.messages) {
       messages = data.messages;
     }
+    console.log('messages>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    console.log(messages)
     return messages;
   },
-  findUserById: async function(id) {
+  findUserById: async function(id, teamCred) {
     let url = 'https://slack.com/api/users.info';
     url += '?user=' + id;
-    url += '&token=' + process.env.SLACK_USER_TOKEN;
+    url += '&token=' + teamCred.userToken; //process.env.SLACK_USER_TOKEN;
     const response = await request({
       url: url,
       method: 'GET',
@@ -125,10 +135,10 @@ const utils = {
     const data = JSON.parse(response.body);
     return data.user;
   },
-  getMessagePermalink: async function(message, channel) {
+  getMessagePermalink: async function(message, channel, teamCred) {
     let url = 'https://slack.com/api/chat.getPermalink';
     url += '?channel=' + channel;
-    url += '&token=' + process.env.SLACK_BOT_TOKEN;
+    url += '&token=' + teamCred.botToken;//process.env.SLACK_BOT_TOKEN;
     url += '&message_ts=' + message.ts;
     const response = await request({
       url: url,
@@ -139,16 +149,18 @@ const utils = {
       resolveWithFullResponse: true
     });
     const data = JSON.parse(response.body);
+    console.log('data.permalink>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    console.log(data.permalink)
     return data.permalink;
   },
-  hashFile: async function(url) {
+  hashFile: async function(url, teamCred) {
     let hash = '';
     const shasum = crypto.createHash('sha256');
     const response = await request({
       url: url,
       method: 'GET',
       headers: {
-        'Authorization': 'Bearer ' + process.env.SLACK_BOT_TOKEN
+        'Authorization': 'Bearer ' + teamCred.botToken // process.env.SLACK_BOT_TOKEN
       },
       resolveWithFullResponse: true
     });
@@ -156,24 +168,28 @@ const utils = {
     hash = shasum.digest('hex')
     return hash;
   },
-  reportDuplicate: async function(channelId, originalMsg, copyMsg, userId) {
-    const linkToOriginalMsg = await utils.getMessagePermalink(originalMsg, channelId);
-    const linkToCopyMsg = await utils.getMessagePermalink(copyMsg, channelId);
+  reportDuplicate: async function(channelId, originalMsg, copyMsg, userId, teamCred) {
+    const linkToOriginalMsg = await utils.getMessagePermalink(originalMsg, channelId, teamCred);
+    const linkToCopyMsg = await utils.getMessagePermalink(copyMsg, channelId, teamCred);
     try {
       let threadedMsg = {};
       try {
-        threadedMsg = await utils.reportDuplicateInChannelAsThread(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg);
+        threadedMsg = await utils.reportDuplicateInChannelAsThread(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred);
       } catch (error) {
         threadedMsg = {};
       }
-      await utils.reportDuplicateInChannelAsEphemeral(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, threadedMsg);
+      await utils.reportDuplicateInChannelAsEphemeral(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, threadedMsg, teamCred);
     } catch (error) {
-      await utils.reportDuplicateToUser(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg);
+      await utils.reportDuplicateToUser(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred);
     }
   },
-  reportDuplicateInChannelAsEphemeral: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, threadedMsg) {
+  reportDuplicateInChannelAsEphemeral: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, threadedMsg, teamCred) {
     // post ephemeral message in channel, visible only to user
-    await bot.postEphemeral(
+    const _bot = new SlackBot({
+      token: teamCred.botToken, 
+      name: 'CopyCat'
+    });
+    await _bot.postEphemeral(
       channelId,
       userId,
       "The message you just posted is a copy of a recent message in this channel!",
@@ -202,8 +218,12 @@ const utils = {
       }
     );
   },
-  reportDuplicateInChannelAsThread: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg) {
-    const response = await bot.postMessage(
+  reportDuplicateInChannelAsThread: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred) {
+    const _bot = new SlackBot({
+      token: teamCred.botToken, 
+      name: 'CopyCat'
+    });
+    const response = await _bot.postMessage(
       channelId,
       "This message is a copy of a recent message in this channel!",
       { 
@@ -217,11 +237,15 @@ const utils = {
     );
     return response.message;
   },
-  reportDuplicateToUser: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg) {
-    const user = await utils.findUserById(userId);
+  reportDuplicateToUser: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred) {
+    const user = await utils.findUserById(userId, teamCred);
     // user can be undefined
     if (user && user.name) {
-      await bot.postMessageToUser(
+      const _bot = new SlackBot({
+        token: teamCred.botToken, 
+        name: 'CopyCat'
+      });
+      await _bot.postMessageToUser(
         user.name,
         "The message you just posted is a copy of a recent message in the channel!",
         {
