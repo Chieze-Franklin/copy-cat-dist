@@ -83,6 +83,8 @@ app.post('/message', async (req, res) => {
   if (req.body.challenge) {
     return res.status(200).json({ challenge: req.body.challenge });
   }
+  console.log('req.body>>>>>>>>>>>>>>>>>>>>>');
+  console.log(req.body);
   return res.status(200).json({});
 })
 
