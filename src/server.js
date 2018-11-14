@@ -1,5 +1,6 @@
 import 'babel-polyfill' // eslint-disable-line
 import express from 'express';
+import exphbs from 'express-handlebars';
 import bodyParser from 'body-parser';
 import models from './models';
 import request from 'request-promise-native';
@@ -11,48 +12,70 @@ const app = new express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-app.use('**/files', express.static(__dirname + '/files'));
+app.use('**/assets', express.static(__dirname + '/assets'));
 
-app.get('/', (req, res) => {
-  res.redirect('/files/index.html')
+app.set('views', __dirname + '/views');
+app.engine('html', exphbs.create({
+  defaultLayout: 'main.html',
+  layoutsDir: app.get('views') + '/layouts',
+  partialsDir: [app.get('views') + '/partials']
+}).engine);
+app.set('view engine', 'html');
+
+app.get('/', async (req, res) => {
+  const result = await models.TeamCred.findAndCountAll({ limit: 10 });
+  console.log('result>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+  console.log(result);
+  res.render('index.html', {
+    slack_button_href: 'https://slack.com/oauth/authorize?scope=channels:history,channels:read,channels:write,chat:write:bot,groups:history,groups:read,groups:write,incoming-webhook,mpim:history,mpim:read,mpim:write,files:read,bot,users:read&client_id=258316641222.456711531815',
+    teams: result.rows,
+    teamsCount: result.count
+  });
 });
 
 app.get('/auth', async (req, res) => {
   if (!req.query.code) { // access denied
-    return; // TODO: redirect somewhere
+    return res.render('failure.html', { message: 'Authentication failed!' });
   }
-  var data = {form: {
-    client_id: process.env.SLACK_CLIENT_ID,
-    client_secret: process.env.SLACK_CLIENT_SECRET,
-    code: req.query.code
-  }};
-  request.post('https://slack.com/api/oauth.access', data, async function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      const jsonResponse = JSON.parse(body);
-      if (jsonResponse.ok) {
-        // get tokens
-        const botId = jsonResponse.bot.bot_user_id;
-        const botToken = jsonResponse.bot.bot_access_token;
-        const teamId = jsonResponse.team_id;
-        const teamName = jsonResponse.team_name;
-        const userId = jsonResponse.user_id;
-        const userToken = jsonResponse.access_token;
-        // create and save team creds
-        const teamCred = await models.TeamCred.upsert({
-          botId,
-          botToken,
-          teamId,
-          teamName,
-          userId,
-          userToken
-        });
-        // OAuth done- redirect the user to wherever
-        res.redirect('/files/success.html');
-      }
+  try {
+    const response = await request({
+      url: 'https://slack.com/api/oauth.access',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      formData: {
+        client_id: process.env.SLACK_CLIENT_ID,
+        client_secret: process.env.SLACK_CLIENT_SECRET,
+        code: req.query.code
+      },
+      resolveWithFullResponse: true
+    });
+    const jsonResponse = JSON.parse(response.body);
+    if (jsonResponse.ok) {
+      // get tokens
+      const botId = jsonResponse.bot.bot_user_id;
+      const botToken = jsonResponse.bot.bot_access_token;
+      const teamId = jsonResponse.team_id;
+      const teamName = jsonResponse.team_name;
+      const userId = jsonResponse.user_id;
+      const userToken = jsonResponse.access_token;
+      // create and save team creds
+      const teamCred = await models.TeamCred.upsert({
+        botId,
+        botToken,
+        teamId,
+        teamName,
+        userId,
+        userToken
+      });
+      return res.render('success.html');
+    } else {
+      throw new Error('CopyCat could not be installed in your workspace.');
     }
-
-    // TODO: something to return for failure
-  })
+  } catch (error) {
+    return res.render('failure.html', { message: error.message });
+  }
 });
 
 app.post('/delete', async (req, res) => {
@@ -101,7 +124,7 @@ app.post('/message', async (req, res) => {
         return res.status(200).json({});
       }
     } catch (error) {
-      console.log(error);
+      return res.status(500).json(error);
     }
   }
 })
