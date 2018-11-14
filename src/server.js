@@ -25,10 +25,10 @@ app.set('view engine', 'html');
 app.get('/', async (req, res) => {
   const result = await models.TeamCred.findAndCountAll({ limit: 10 });
   console.log('result>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-  console.log(result);
+  console.log(result.rows.map(row => row.dataValues));
   res.render('index.html', {
     slack_button_href: 'https://slack.com/oauth/authorize?scope=channels:history,channels:read,channels:write,chat:write:bot,groups:history,groups:read,groups:write,incoming-webhook,mpim:history,mpim:read,mpim:write,files:read,bot,users:read&client_id=258316641222.456711531815',
-    teams: result.rows,
+    teams: result.rows.map(row => row.dataValues),
     teamsCount: result.count
   });
 });
