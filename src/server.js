@@ -86,10 +86,6 @@ app.post('/message', async (req, res) => {
   return res.status(200).json({});
 })
 
-app.use('/redirect', (req, res) => {
-  console.log('redirect url');
-});
-
 let server = app.listen(process.env.PORT || 5000, () => {
   let port = server.address().port;
   console.log(`Server started on port ${port}`)
