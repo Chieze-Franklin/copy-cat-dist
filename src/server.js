@@ -13,6 +13,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 app.use('**/assets', express.static(__dirname + '/assets'));
+console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+console.log(__dirname)
 
 app.set('views', __dirname + '/views');
 app.engine('html', exphbs.create({
