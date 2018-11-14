@@ -22,15 +22,17 @@ bot.on('message', async function(data) {
   console.log('data>>>>>>>>>>>>>>>>>>>>>');
   console.log(data);
   try {
-    const allTeamCred = await models.TeamCred.findAll({});
-    console.log('allTeamCred>>>>>>>>>>>>>>>>>>>>>');
-    console.log(allTeamCred);
-    const existingTeamCred = await models.TeamCred.findOne({
-      where: { teamId: data.team }
-    });
-    console.log('existingTeamCred>>>>>>>>>>>>>>>>>>>>>');
-    console.log(existingTeamCred);
-    if (existingTeamCred && data.type === 'message' && !data.thread_ts && !data.bot_id) {
+    if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
+      const allTeamCred = await models.TeamCred.findAll({});
+      console.log('allTeamCred>>>>>>>>>>>>>>>>>>>>>');
+      console.log(allTeamCred);
+      console.log('data.team>>>>>>>>>>>>>>>>>>>>>');
+      console.log(data.team);
+      const existingTeamCred = await models.TeamCred.findOne({
+        where: { teamId: data.team }
+      });
+      console.log('existingTeamCred>>>>>>>>>>>>>>>>>>>>>');
+      console.log(existingTeamCred);
       const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
       const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
       if (matches.length > 0) {
