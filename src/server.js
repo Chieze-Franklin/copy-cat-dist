@@ -13,8 +13,8 @@ const app = new express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-app.use('*/assets', express.static(__dirname + '/assets'));
-app.use('*/assets', (req, res, next) => {
+app.use('/assets', express.static(__dirname + '/assets'));
+app.use('/assets', (req, res, next) => {
   console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
   console.log(__dirname);
   console.log(req.originalUrl)
