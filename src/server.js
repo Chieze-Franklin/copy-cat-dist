@@ -64,10 +64,13 @@ app.post('/delete', async (req, res) => {
     console.log(payload);
     const value = JSON.parse(payload.actions[0].value);
     let channel = value.channel || payload.channel.id;
+    const existingTeamCred = await models.TeamCred.findOne({
+      where: { teamId: payload.team.id }
+    });
     if (value.threaded_message_ts) {
-      utils.deleteMessage(value.threaded_message_ts, channel)
+      utils.deleteMessage(value.threaded_message_ts, channel, existingTeamCred)
     }
-    const ok = await utils.deleteMessage(value.message_ts, channel);
+    const ok = await utils.deleteMessage(value.message_ts, channel, existingTeamCred);
     if (ok) {
       return res.status(200).send('Duplicate message deleted!');
     }
