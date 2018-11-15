@@ -2,7 +2,6 @@ import 'babel-polyfill' // eslint-disable-line
 import express from 'express';
 import exphbs from 'express-handlebars';
 import bodyParser from 'body-parser';
-import path from 'path';
 import request from 'request-promise-native';
 import url from 'url';
 
@@ -24,6 +23,9 @@ app.engine('html', exphbs.create({
 }).engine);
 app.set('view engine', 'html');
 
+/**
+ * This UI endpoint renders the landing page
+ */
 app.get('/', async (req, res) => {
   const result = await models.TeamCred.findAndCountAll({ limit: 10 });
   const teams = result.rows.map(row => {
@@ -39,6 +41,9 @@ app.get('/', async (req, res) => {
   });
 });
 
+/** 
+ * This UI endpoint handles authentication
+*/
 app.get('/auth', async (req, res) => {
   if (!req.query.code) { // access denied
     return res.render('failure.html', { message: 'Authentication failed!' });
@@ -87,6 +92,10 @@ app.get('/auth', async (req, res) => {
   }
 });
 
+/** 
+ * The endpoint is POSTed to when a user clicks on the 'Delete' button
+ * in order to delete a message
+*/
 app.post('/delete', async (req, res) => {
   try {
     const payload = JSON.parse(req.body.payload);
@@ -112,6 +121,10 @@ app.post('/delete', async (req, res) => {
   }
 })
 
+/** 
+ * The endpoint is POSTed to when certain events (like a user posted a message)
+ * occur.
+*/
 app.post('/message', async (req, res) => {
   res.header('Content-Type', 'application/x-www-form-urlencoded');
   // if Slack is "challenging" our URL in order to verify it
