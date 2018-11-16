@@ -141,6 +141,8 @@ app.post('/message', async (req, res) => {
           where: { teamId: req.body.team_id }
         });
         const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
+        console.log('messages.length>>>>>>>>>>>>');
+        console.log(messages.length);
         const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
         if (matches.length > 0) {
           await utils.reportDuplicate(data.channel, matches[0], data, data.user, existingTeamCred);
