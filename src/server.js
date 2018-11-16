@@ -134,6 +134,8 @@ app.post('/message', async (req, res) => {
     try {
       const data = req.body.event;
       if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
+        console.log('data.text>>>>>>>>>>>>');
+        console.log(data.text);
         const allTeamCred = await models.TeamCred.findAll({});
         const existingTeamCred = await models.TeamCred.findOne({
           where: { teamId: req.body.team_id }
