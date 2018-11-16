@@ -45,7 +45,7 @@ app.get('/', async (req, res) => {
  * This UI endpoint handles authentication
 */
 app.get('/auth', async (req, res) => {
-  if (!req.query.code) { // access denied
+  if (!req.query.code || req.query.error) { // req.query.error==='access_denied'
     return res.render('failure.html', { message: 'Authentication failed!' });
   }
   try {
