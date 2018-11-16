@@ -145,6 +145,8 @@ app.post('/message', async (req, res) => {
         console.log(messages.length);
         const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
         if (matches.length > 0) {
+          console.log('matches.length>>>>>>>>>>>>');
+          console.log(matches.length);
           await utils.reportDuplicate(data.channel, matches[0], data, data.user, existingTeamCred);
         }
         return res.status(200).json({});
