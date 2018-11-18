@@ -10,6 +10,34 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
+/*
+const bot = new SlackBot({
+  token: // process.env.SLACK_BOT_TOKEN, 
+  name: 'CopyCat'
+});
+bot.on('start', function() {
+  console.log('Connection established with Slack!')
+});
+
+bot.on('message', async function(data) {
+  try {
+    if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
+      const allTeamCred = await models.TeamCred.findAll({});
+      const existingTeamCred = await models.TeamCred.findOne({
+        where: { teamId: data.team }
+      });
+      const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
+      const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
+      if (matches.length > 0) {
+        await utils.reportDuplicate(data.channel, matches[0], data, data.user, existingTeamCred);
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
+*/
+
 const utils = {
   compareNewMessageToOldMessages: async function(messages, teamCred) {
     let matches = [];
@@ -152,18 +180,15 @@ const utils = {
   },
   reportDuplicateInChannelAsEphemeral: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, threadedMsg, teamCred) {
     // post ephemeral message in channel, visible only to user
-    let url = 'https://slack.com/api/chat.postEphemeral';
-    const response = await request({
-      url: url,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      formData: {
-        token: teamCred.botToken,
-        channel: channelId,
-        text: 'The message you just posted is a copy of a recent message in this channel!',
-        user: userId,
+    const _bot = new SlackBot({
+      token: teamCred.botToken, 
+      name: 'CopyCat'
+    });
+    await _bot.postEphemeral(
+      channelId,
+      userId,
+      "The message you just posted is a copy of a recent message in this channel!",
+      {
         attachments: [{
           title: 'original post',
           // title_link: linkToOriginalMsg,
@@ -185,49 +210,40 @@ const utils = {
             })
           }]
         }]
-      },
-      resolveWithFullResponse: true
-    });
+      }
+    );
   },
   reportDuplicateInChannelAsThread: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred) {
-    let url = 'https://slack.com/api/chat.postMessage';
-    const response = await request({
-      url: url,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      formData: {
-        token: teamCred.botToken,
-        channel: channelId,
-        text: 'This message is a copy of a recent message in this channel!',
+    const _bot = new SlackBot({
+      token: teamCred.botToken, 
+      name: 'CopyCat'
+    });
+    const response = await _bot.postMessage(
+      channelId,
+      "This message is a copy of a recent message in this channel!",
+      { 
         thread_ts: copyMsg.ts,
         attachments: [{
           title: 'original post',
           // title_link: linkToOriginalMsg,
           text: linkToOriginalMsg
         }]
-      },
-      resolveWithFullResponse: true
-    });
-    const data = JSON.parse(response.body);
-    return data.message;
+      }
+    );
+    return response.message;
   },
   reportDuplicateToUser: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred) {
     const user = await utils.findUserById(userId, teamCred);
     // user can be undefined
     if (user && user.name) {
-      let url = 'https://slack.com/api/chat.postMessage';
-      const response = await request({
-        url: url,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        formData: {
-          token: teamCred.botToken,
-          channel: userId, //user.name
-          text: 'The message you just posted is a copy of a recent message in the channel!',
+      const _bot = new SlackBot({
+        token: teamCred.botToken, 
+        name: 'CopyCat'
+      });
+      await _bot.postMessageToUser(
+        user.name,
+        "The message you just posted is a copy of a recent message in the channel!",
+        {
           attachments: [{
             title: 'original post',
             // title_link: linkToOriginalMsg,
@@ -246,9 +262,8 @@ const utils = {
               value: JSON.stringify({ channel: channelId, message_ts: copyMsg.ts })
             }]
           }]
-        },
-        resolveWithFullResponse: true
-      });
+        }
+      );
     }
   }
 }
