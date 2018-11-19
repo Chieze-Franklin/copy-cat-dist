@@ -2,7 +2,6 @@ import 'babel-polyfill' // eslint-disable-line
 import _ from 'lodash';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-// import models from './models';
 import request from 'request-promise-native';
 import SlackBot from 'slackbots';
 
@@ -147,8 +146,6 @@ const utils = {
       }
       await utils.reportDuplicateInChannelAsEphemeral(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, threadedMsg, teamCred);
     } catch (error) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-      console.log(error);
       await utils.reportDuplicateToUser(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred);
     }
   },
