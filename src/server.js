@@ -134,14 +134,14 @@ app.post('/message', async (req, res) => {
     try {
       const data = req.body.event;
       if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
-        // const existingTeamCred = await models.TeamCred.findOne({
-        //   where: { teamId: req.body.team_id }
-        // });
-        // const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
-        // const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
-        // if (matches.length > 0) {
-        //   await utils.reportDuplicate(data.channel, matches[0], data, data.user, existingTeamCred);
-        // }
+        const existingTeamCred = await models.TeamCred.findOne({
+          where: { teamId: req.body.team_id }
+        });
+        const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
+        const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
+        if (matches.length > 0) {
+          await utils.reportDuplicate(data.channel, matches[0], data, data.user, existingTeamCred);
+        }
       }
       return res.status(200).json({});
     } catch (error) {
