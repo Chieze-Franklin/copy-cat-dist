@@ -10,34 +10,6 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
-/*
-const bot = new SlackBot({
-  token: // process.env.SLACK_BOT_TOKEN, 
-  name: 'CopyCat'
-});
-bot.on('start', function() {
-  console.log('Connection established with Slack!')
-});
-
-bot.on('message', async function(data) {
-  try {
-    if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
-      const allTeamCred = await models.TeamCred.findAll({});
-      const existingTeamCred = await models.TeamCred.findOne({
-        where: { teamId: data.team }
-      });
-      const messages = await utils.fetchMessagesFromChannel(data.channel, existingTeamCred);
-      const matches = await utils.compareNewMessageToOldMessages(messages, existingTeamCred);
-      if (matches.length > 0) {
-        await utils.reportDuplicate(data.channel, matches[0], data, data.user, existingTeamCred);
-      }
-    }
-  } catch (error) {
-    console.log(error);
-  }
-});
-*/
-
 const utils = {
   compareNewMessageToOldMessages: async function(messages, teamCred) {
     let matches = [];
@@ -89,7 +61,7 @@ const utils = {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       formData: {
-        token: teamCred.userToken, // process.env.SLACK_USER_TOKEN,
+        token: teamCred.userToken,
         channel: channel,
         ts: message_ts
       },
@@ -102,7 +74,7 @@ const utils = {
     let messages = [];
     let url = 'https://slack.com/api/conversations.history';
     url += '?channel=' + channel;
-    url += '&token=' + teamCred.userToken; // process.env.SLACK_USER_TOKEN;
+    url += '&token=' + teamCred.userToken;
     const response = await request({
       url: url,
       method: 'GET',
@@ -120,7 +92,7 @@ const utils = {
   findUserById: async function(id, teamCred) {
     let url = 'https://slack.com/api/users.info';
     url += '?user=' + id;
-    url += '&token=' + teamCred.userToken; // process.env.SLACK_USER_TOKEN;
+    url += '&token=' + teamCred.userToken;
     const response = await request({
       url: url,
       method: 'GET',
@@ -180,6 +152,22 @@ const utils = {
   },
   reportDuplicateInChannelAsEphemeral: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, threadedMsg, teamCred) {
     // post ephemeral message in channel, visible only to user
+    let url = 'https://slack.com/api/chat.postEphemeral';
+    const response = await request({
+      url: url,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      formData: {
+        token: teamCred.userToken,
+        channel: channel,
+        ts: message_ts
+      },
+      resolveWithFullResponse: true
+    });
+    const data = JSON.parse(response.body);
+    return data.ok;
     const _bot = new SlackBot({
       token: teamCred.botToken, 
       name: 'CopyCat'
