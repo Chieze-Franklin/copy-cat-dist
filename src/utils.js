@@ -166,7 +166,7 @@ const utils = {
         channel: channelId,
         text: 'The message you just posted is a copy of a recent message in this channel!',
         user: userId,
-        attachments: [{
+        attachments: JSON.stringify([{
           title: 'original post',
           // title_link: linkToOriginalMsg,
           text: linkToOriginalMsg
@@ -186,7 +186,7 @@ const utils = {
               threaded_message_ts: !(_.isEmpty(threadedMsg)) ? threadedMsg.ts : null
             })
           }]
-        }]
+        }])
       },
       resolveWithFullResponse: true
     });
@@ -204,11 +204,10 @@ const utils = {
         channel: channelId,
         text: 'This message is a copy of a recent message in this channel!',
         thread_ts: copyMsg.ts,
-        attachments: [{
+        attachments: JSON.stringify([{
           title: 'original post',
-          // title_link: linkToOriginalMsg,
           text: linkToOriginalMsg
-        }]
+        }])
       },
       resolveWithFullResponse: true
     });
