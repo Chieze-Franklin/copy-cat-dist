@@ -160,23 +160,10 @@ const utils = {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       formData: {
-        token: teamCred.userToken,
-        channel: channel,
-        ts: message_ts
-      },
-      resolveWithFullResponse: true
-    });
-    const data = JSON.parse(response.body);
-    return data.ok;
-    const _bot = new SlackBot({
-      token: teamCred.botToken, 
-      name: 'CopyCat'
-    });
-    await _bot.postEphemeral(
-      channelId,
-      userId,
-      "The message you just posted is a copy of a recent message in this channel!",
-      {
+        token: teamCred.botToken,
+        channel: channelId,
+        text: 'The message you just posted is a copy of a recent message in this channel!',
+        user: userId,
         attachments: [{
           title: 'original post',
           // title_link: linkToOriginalMsg,
@@ -198,27 +185,33 @@ const utils = {
             })
           }]
         }]
-      }
-    );
+      },
+      resolveWithFullResponse: true
+    });
   },
   reportDuplicateInChannelAsThread: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred) {
-    const _bot = new SlackBot({
-      token: teamCred.botToken, 
-      name: 'CopyCat'
-    });
-    const response = await _bot.postMessage(
-      channelId,
-      "This message is a copy of a recent message in this channel!",
-      { 
+    let url = 'https://slack.com/api/chat.postMessage';
+    const response = await request({
+      url: url,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      formData: {
+        token: teamCred.botToken,
+        channel: channelId,
+        text: 'This message is a copy of a recent message in this channel!',
         thread_ts: copyMsg.ts,
         attachments: [{
           title: 'original post',
           // title_link: linkToOriginalMsg,
           text: linkToOriginalMsg
         }]
-      }
-    );
-    return response.message;
+      },
+      resolveWithFullResponse: true
+    });
+    const data = JSON.parse(response.body);
+    return data.message;
   },
   reportDuplicateToUser: async function(channelId, originalMsg, copyMsg, userId, linkToOriginalMsg, linkToCopyMsg, teamCred) {
     const user = await utils.findUserById(userId, teamCred);
