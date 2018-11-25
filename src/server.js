@@ -134,6 +134,9 @@ app.post('/message', async (req, res) => {
   } else {
     try {
       const data = req.body.event;
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      console.log('data.text:', data.text);
+      console.log('urlChecker.isUri(data.text): ', urlChecker.isUri(data.text))
       if (data.type === 'message' && urlChecker.isUri(data.text) && !data.thread_ts && !data.bot_id) {
         const existingTeamCred = await models.TeamCred.findOne({
           where: { teamId: req.body.team_id }
