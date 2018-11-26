@@ -4,7 +4,6 @@ import exphbs from 'express-handlebars';
 import bodyParser from 'body-parser';
 import request from 'request-promise-native';
 import url from 'url';
-import urlChecker from 'valid-url';
 
 import models from './models';
 import utils from './utils';
@@ -135,9 +134,6 @@ app.post('/message', async (req, res) => {
     try {
       const data = req.body.event;
       const isUrl = data.text.startsWith('<http') && data.text.endsWith('>');
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      console.log('data.text:', data.text);
-      console.log('isUrl: ', isUrl)
       if (data.type === 'message' && isUrl && !data.thread_ts && !data.bot_id) {
         const existingTeamCred = await models.TeamCred.findOne({
           where: { teamId: req.body.team_id }
