@@ -133,7 +133,8 @@ app.post('/message', async (req, res) => {
   } else {
     try {
       const data = req.body.event;
-      if (data.type === 'message' && !data.thread_ts && !data.bot_id) {
+      const isUrl = data.text.startsWith('<http') && data.text.endsWith('>');
+      if (data.type === 'message' && isUrl && !data.thread_ts && !data.bot_id) {
         const existingTeamCred = await models.TeamCred.findOne({
           where: { teamId: req.body.team_id }
         });
