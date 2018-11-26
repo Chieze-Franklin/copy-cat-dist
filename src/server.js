@@ -134,10 +134,11 @@ app.post('/message', async (req, res) => {
   } else {
     try {
       const data = req.body.event;
+      const isUrl = data.text.startsWith('<http') && data.text.endsWith('>');
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>');
       console.log('data.text:', data.text);
-      console.log('urlChecker.isUri(data.text): ', urlChecker.isUri(data.text))
-      if (data.type === 'message' && urlChecker.isUri(data.text) && !data.thread_ts && !data.bot_id) {
+      console.log('isUrl: ', isUrl)
+      if (data.type === 'message' && isUrl && !data.thread_ts && !data.bot_id) {
         const existingTeamCred = await models.TeamCred.findOne({
           where: { teamId: req.body.team_id }
         });
